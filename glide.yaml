@@ -1,0 +1,26 @@
+package: github.com/deis/registry-token-refresher
+import:
+- package: github.com/aws/aws-sdk-go
+  subpackages:
+  - aws
+  - aws/credentials
+  - aws/credentials/ec2rolecreds
+  - aws/ec2metadata
+  - aws/session
+  - service/ecr
+- package: k8s.io/kubernetes
+  version: 1.2.4
+  subpackages:
+  - pkg/api
+  - pkg/api/errors
+  - pkg/client/unversioned
+  - pkg/fields
+  - pkg/labels
+- package: github.com/arschles/assert
+  version: 6882f85ccdc7c1822b146d1a6b0c2c48f91b5140
+- package: speter.net/go/exp/math/dec/inf
+  repo: https://github.com/belua/inf
+  vcs: git
+- package: golang.org/x/oauth2
+  subpackages:
+  - google
