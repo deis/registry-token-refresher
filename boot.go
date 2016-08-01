@@ -14,11 +14,14 @@ import (
 	"k8s.io/kubernetes/pkg/labels"
 )
 
-var appList []string
 var registryLocation = os.Getenv("DEIS_REGISTRY_LOCATION")
 var namespaceRefreshTime = os.Getenv("DEIS_NAMESPACE_REFRESH_TIME")
 
-func getDiff(namespaceList []api.Namespace) []string {
+const (
+	registryCredLocation = "/var/run/secrets/deis/registry/creds/"
+)
+
+func getDiff(appList []string, namespaceList []api.Namespace) ([]string, []string) {
 	var added []string
 	apps := make([]string, len(namespaceList))
 	// create a set of app names
@@ -27,18 +30,18 @@ func getDiff(namespaceList []api.Namespace) []string {
 		appsSet[app] = struct{}{}
 	}
 
-	for _, ns := range namespaceList {
+	for i, ns := range namespaceList {
 		if _, ok := appsSet[ns.Name]; !ok {
 			added = append(added, ns.Name)
 		}
-		apps = append(apps, ns.Name)
+		apps[i] = ns.Name
 	}
 
-	appList = apps
-	return added
+	return added, apps
 }
 
-func tokenRefresher(client kcl.SecretsNamespacer, credsProvider credentials.DockerCredProvider, appCh <-chan string, errCh chan<- error, doneCh <-chan struct{}) {
+func tokenRefresher(client kcl.SecretsNamespacer, credsProvider credentials.DockerCredProvider, appListCh <-chan []api.Namespace, errCh chan<- error, doneCh <-chan struct{}) {
+	var appList []string
 	creds, err := credsProvider.GetDockerCredentials()
 	if err != nil {
 		errCh <- err
@@ -48,11 +51,15 @@ func tokenRefresher(client kcl.SecretsNamespacer, credsProvider credentials.Dock
 	defer ticker.Stop()
 	for {
 		select {
-		case app := <-appCh:
-			log.Printf("creating secret for app %s", app)
-			if err = pkg.CreateSecret(client.Secrets(app), creds); err != nil {
-				errCh <- err
-				return
+		case apps := <-appListCh:
+			var added []string
+			added, appList = getDiff(appList, apps)
+			for _, app := range added {
+				log.Printf("creating secret for app %s", app)
+				if err = pkg.CreateSecret(client.Secrets(app), creds); err != nil {
+					errCh <- err
+					return
+				}
 			}
 		case <-ticker.C:
 			creds, err = credsProvider.GetDockerCredentials()
@@ -82,7 +89,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error getting the namespace refresh time", err)
 	}
-	params, err := pkg.GetRegistryParams()
+	params, err := pkg.GetRegistryParams(registryCredLocation)
 	if err != nil {
 		log.Fatal("Error getting registry location credentials details", err)
 	}
@@ -91,12 +98,12 @@ func main() {
 		log.Fatal("Error getting credentials provider", err)
 	}
 
-	appAddedCh := make(chan string)
+	appListCh := make(chan []api.Namespace)
 	tokenRefErrCh := make(chan error)
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 
-	go tokenRefresher(kubeClient, credProvider, appAddedCh, tokenRefErrCh, doneCh)
+	go tokenRefresher(kubeClient, credProvider, appListCh, tokenRefErrCh, doneCh)
 
 	for {
 		select {
@@ -108,10 +115,7 @@ func main() {
 			if err != nil {
 				log.Fatal("Error getting kubernetes namespaces ", err)
 			}
-			added := getDiff(nsList.Items)
-			for _, app := range added {
-				appAddedCh <- app
-			}
+			appListCh <- nsList.Items
 		}
 		time.Sleep(time.Second * time.Duration(refreshTime))
 	}

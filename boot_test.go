@@ -17,15 +17,22 @@ func TestGetDiff(t *testing.T) {
 		api.Namespace{ObjectMeta: api.ObjectMeta{Name: "app1"}},
 		api.Namespace{ObjectMeta: api.ObjectMeta{Name: "app2"}},
 	}
-	added := getDiff(nsList)
+	appList := []string{}
+	added, appList := getDiff(appList, nsList)
 	assert.Equal(t, len(added), 2, "number of namespaces added")
 	assert.Equal(t, added, []string{"app1", "app2"}, "namespaces")
+	assert.Equal(t, appList, []string{"app1", "app2"}, "namespaces")
+	assert.Equal(t, len(appList), 2, "number of namespaces added")
+
 	nsList = append(nsList, api.Namespace{ObjectMeta: api.ObjectMeta{Name: "app3"}})
-	added = getDiff(nsList)
+	added, appList = getDiff(appList, nsList)
 	assert.Equal(t, len(added), 1, "number of namespaces added")
 	assert.Equal(t, added, []string{"app3"}, "namespaces")
-	added = getDiff(nsList)
+	assert.Equal(t, len(appList), 3, "number of namespaces added")
+
+	added, appList = getDiff(appList, nsList)
 	assert.Equal(t, len(added), 0, "number of namespaces added")
+	assert.Equal(t, len(appList), 3, "number of namespaces added")
 }
 
 func TestTokenRefresherCredsErr(t *testing.T) {
@@ -36,10 +43,10 @@ func TestTokenRefresherCredsErr(t *testing.T) {
 		},
 	}
 	kubeClient := &k8s.FakeSecretsNamespacer{}
-	appAddedCh := make(chan string)
+	appListCh := make(chan []api.Namespace)
 	tokenRefErrCh := make(chan error)
 	doneCh := make(chan struct{})
-	go tokenRefresher(kubeClient, credProvider, appAddedCh, tokenRefErrCh, doneCh)
+	go tokenRefresher(kubeClient, credProvider, appListCh, tokenRefErrCh, doneCh)
 	timeoutCh := time.After(time.Second * 5)
 	select {
 	case err := <-tokenRefErrCh:
@@ -70,11 +77,11 @@ func TestTokenRefresherSecretErr(t *testing.T) {
 			return secretsClient
 		},
 	}
-	appAddedCh := make(chan string)
+	appListCh := make(chan []api.Namespace)
 	tokenRefErrCh := make(chan error)
 	doneCh := make(chan struct{})
-	go tokenRefresher(kubeClient, credProvider, appAddedCh, tokenRefErrCh, doneCh)
-	appAddedCh <- "testapp"
+	go tokenRefresher(kubeClient, credProvider, appListCh, tokenRefErrCh, doneCh)
+	appListCh <- []api.Namespace{api.Namespace{ObjectMeta: api.ObjectMeta{Name: "testapp"}}}
 	timeoutCh := time.After(time.Second * 5)
 	select {
 	case err := <-tokenRefErrCh:
@@ -105,11 +112,11 @@ func TestTokenRefresherCreateSecretSuccess(t *testing.T) {
 			return secretsClient
 		},
 	}
-	appAddedCh := make(chan string)
+	appListCh := make(chan []api.Namespace)
 	tokenRefErrCh := make(chan error)
 	doneCh := make(chan struct{})
-	go tokenRefresher(kubeClient, credProvider, appAddedCh, tokenRefErrCh, doneCh)
-	appAddedCh <- "testapp"
+	go tokenRefresher(kubeClient, credProvider, appListCh, tokenRefErrCh, doneCh)
+	appListCh <- []api.Namespace{api.Namespace{ObjectMeta: api.ObjectMeta{Name: "testapp"}}}
 	timeoutCh := time.After(time.Second * 5)
 	select {
 	case err := <-tokenRefErrCh:
@@ -121,7 +128,6 @@ func TestTokenRefresherCreateSecretSuccess(t *testing.T) {
 }
 
 func TestTokenRefresherUpdateSecretSuccess(t *testing.T) {
-	appList = []string{}
 	credProvider := &credentials.FakeDockerCredProvider{
 		FnGetCreds: func() (credentials.DockerConfig, error) {
 			return credentials.DockerConfig{}, nil
@@ -144,12 +150,11 @@ func TestTokenRefresherUpdateSecretSuccess(t *testing.T) {
 			return secretsClient
 		},
 	}
-	appAddedCh := make(chan string)
+	appListCh := make(chan []api.Namespace)
 	tokenRefErrCh := make(chan error)
 	doneCh := make(chan struct{})
-	go tokenRefresher(kubeClient, credProvider, appAddedCh, tokenRefErrCh, doneCh)
-	appList = append(appList, "testapp")
-	appAddedCh <- "testapp"
+	go tokenRefresher(kubeClient, credProvider, appListCh, tokenRefErrCh, doneCh)
+	appListCh <- []api.Namespace{api.Namespace{ObjectMeta: api.ObjectMeta{Name: "testapp"}}}
 	timeoutCh := time.After(time.Second * 5)
 	select {
 	case err := <-tokenRefErrCh:

@@ -8,12 +8,11 @@ import (
 )
 
 const (
-	registryCredLocation = "/var/run/secrets/deis/registry/creds/"
-	gcsKey               = "key.json"
-	tokenRefreshKey      = "DEIS_TOKEN_REFRESH_TIME"
+	gcsKey          = "key.json"
+	tokenRefreshKey = "DEIS_TOKEN_REFRESH_TIME"
 )
 
-func GetRegistryParams() (credentials.Parameters, error) {
+func GetRegistryParams(registryCredLocation string) (credentials.Parameters, error) {
 	params := make(map[string]interface{})
 	files, err := ioutil.ReadDir(registryCredLocation)
 	if err != nil {
