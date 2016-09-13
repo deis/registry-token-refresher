@@ -35,7 +35,7 @@ func GetRegistryParams(registryCredLocation string) (credentials.Parameters, err
 		}
 	}
 
-	defaultRefreshTime := os.Getenv("tokenRefreshKey")
+	defaultRefreshTime := os.Getenv(tokenRefreshKey)
 	if defaultRefreshTime != "" {
 		refreshTime, err := strconv.ParseInt(defaultRefreshTime, 10, 32)
 		if err != nil {
