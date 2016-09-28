@@ -44,8 +44,8 @@ update-changelog:
 	${DEV_ENV_PREFIX} -e RELEASE=${WORKFLOW_RELEASE} ${DEV_ENV_IMAGE} gen-changelog.sh \
 	  | cat - CHANGELOG.md > tmp && mv tmp CHANGELOG.md
 
-build: build-binary
+docker-build: build-binary
 	docker build --rm -t ${IMAGE} rootfs
 	docker tag ${IMAGE} ${MUTABLE_IMAGE}
 
-.PHONY: all build
+.PHONY: all docker-build test
