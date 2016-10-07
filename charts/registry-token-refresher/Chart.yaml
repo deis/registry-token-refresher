@@ -1,0 +1,10 @@
+name: registry-token-refresher
+home: https://github.com/deis/registry-token-refresher
+version: <Will be populated by the ci before publishing the chart>
+description: Token Refresher for Deis Workflow.
+keywords:
+- private registry
+- token refresher
+maintainers:
+  - name: Deis Team
+    email: engineering@deis.com
