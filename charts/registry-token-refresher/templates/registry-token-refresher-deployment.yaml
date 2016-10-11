@@ -1,0 +1,56 @@
+{{- if and (ne .Values.global.registry_location "on-cluster") (ne .Values.global.registry_location "off-cluster") }}
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: deis-registry-token-refresher
+  labels:
+    heritage: deis
+  annotations:
+    component.deis.io/version: {{ .Values.docker_tag }}
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: deis-registry-token-refresher
+  template:
+    metadata:
+      labels:
+        app: deis-registry-token-refresher
+    spec:
+      containers:
+        - name: deis-registry-token-refresher
+          image: quay.io/{{.Values.org}}/registry-token-refresher:{{.Values.docker_tag}}
+          imagePullPolicy: {{.Values.pull_policy}}
+{{- if or (.Values.limits_cpu) (.Values.limits_memory)}}
+          resources:
+            limits:
+{{- if (.Values.limits_cpu) }}
+              cpu: {{.Values.limits_cpu}}
+{{- end}}
+{{- if (.Values.limits_memory) }}
+              memory: {{.Values.limits_memory}}
+{{- end}}
+{{- end}}
+          env:
+            - name: "DEIS_REGISTRY_LOCATION"
+              value: "{{ .Values.global.registry_location }}"
+            - name: "DEIS_REGISTRY_SECRET_PREFIX"
+              value: "{{ .Values.global.secret_prefix }}"
+            - name: DEIS_NAMESPACE_REFRESH_TIME
+              value: "5"
+            - name: "DEIS_TOKEN_REFRESH_TIME"
+              value: "{{ .Values.token_refresh_time }}"
+          volumeMounts:
+            - name: registry-secret
+              mountPath: /var/run/secrets/deis/registry/creds
+              readOnly: true
+      volumes:
+        - name: registry-secret
+          secret:
+            secretName: registry-secret
+{{- end }}
