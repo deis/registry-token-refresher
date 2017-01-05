@@ -22,7 +22,7 @@ ecr:
   registryid: ""
   hostname: ""
 gcr:
-  key_json: 'Paste JSON data here.'
+  key_json: <base64-encoded JSON data>
   hostname: ""
 
 global:
