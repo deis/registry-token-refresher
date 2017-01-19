@@ -45,7 +45,7 @@ update-changelog:
 	  | cat - CHANGELOG.md > tmp && mv tmp CHANGELOG.md
 
 docker-build: build-binary
-	docker build --rm -t ${IMAGE} rootfs
+	docker build ${DOCKER_BUILD_FLAGS} -t ${IMAGE} rootfs
 	docker tag ${IMAGE} ${MUTABLE_IMAGE}
 
 .PHONY: all docker-build test
