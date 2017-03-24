@@ -1,5 +1,5 @@
 # Registry Token Refresher
-[![Build Status](https://travis-ci.org/deis/registry-token-refresher.svg?branch=master)](https://travis-ci.org/deis/registry-token-refresher)
+[![Build Status](https://ci.deis.io/job/registry-token-refresher/badge/icon)](https://ci.deis.io/job/registry-token-refresher)
 [![Docker Repository on Quay](https://quay.io/repository/deisci/registry-token-refresher/status "Docker Repository on Quay")](https://quay.io/repository/deisci/registry-token-refresher)
 
 Deis (pronounced DAY-iss) Workflow is an open source Platform as a Service (PaaS) that adds a developer-friendly layer to any [Kubernetes](http://kubernetes.io) cluster, making it easy to deploy and manage applications on your own servers.
