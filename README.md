@@ -1,3 +1,9 @@
+
+|![](https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Warning.svg/156px-Warning.svg.png) | Deis Workflow will soon no longer be maintained.<br />Please [read the announcement](https://deis.com/blog/2017/deis-workflow-final-release/) for more detail. |
+|---:|---|
+| 09/07/2017 | Deis Workflow [v2.18][] final release before entering maintenance mode |
+| 03/01/2018 | End of Workflow maintenance: critical patches no longer merged |
+
 # Registry Token Refresher
 [![Build Status](https://ci.deis.io/job/registry-token-refresher/badge/icon)](https://ci.deis.io/job/registry-token-refresher)
 [![Docker Repository on Quay](https://quay.io/repository/deisci/registry-token-refresher/status "Docker Repository on Quay")](https://quay.io/repository/deisci/registry-token-refresher)
@@ -20,3 +26,4 @@ This service is run only when using Amazon's [ECR][ecr] or Google's [GCR][gcr] a
 [controller]: https://github.com/deis/controller
 [ecr]: http://docs.aws.amazon.com/AmazonECR/latest/userguide/ECR_GetStarted.html
 [gcr]: https://cloud.google.com/container-registry/
+[v2.18]: https://github.com/deis/workflow/releases/tag/v2.18.0
